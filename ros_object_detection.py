@@ -92,6 +92,7 @@ class RosYolov8Node(Node):
             points.append(float(x))
             points.append(float(y))
             points.append(float(z))
+            points.append(float(label))
 
         yolo_msg.data = points
         print(points)
