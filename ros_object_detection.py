@@ -18,6 +18,15 @@ import torch
 class RosYolov8Node(Node):
     def __init__(self):
         super().__init__("ros_memeye_node")
+        self.class_names = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+            'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+            'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+            'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+            'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+            'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+            'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
+            'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
+            'scissors', 'teddy bear', 'hair drier', 'toothbrush']
         self.yolo_publisher = self.create_publisher(String, 'yolo_result', 10)
         self.img_subscription = self.create_subscription(
             Image,
@@ -38,8 +47,13 @@ class RosYolov8Node(Node):
     def img_callback(self, Image):
         self.get_logger().info("image received")
         cv_image = self.bridge.imgmsg_to_cv2(Image, desired_encoding='passthrough')
-        # image = PIL_Image.fromarray(cv_image).convert("RGB")
-        boxes, scores, class_ids = self.yolov8_detector(cv_image)
+        boxes, scores, labels = self.yolov8_detector(cv_image)
+        results = ""
+
+        for label in labels:
+            results += " "
+            results += self.class_names[label]
+        print(results)
 
 
 
