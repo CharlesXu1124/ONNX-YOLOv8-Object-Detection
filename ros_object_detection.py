@@ -24,11 +24,22 @@ class RosYolov8Node(Node):
             '/camera/color/image_raw',
             self.img_callback,
             10)
+
+        # Initialize YOLOv7 object detector
+        self.model_path = "models/yolov8s.onnx"
+        self.yolov8_detector = YOLOv8(self.model_path, conf_thres=0.5, iou_thres=0.5)
+        self.get_logger().info("============Yolo Model Ready===========")
         self.bridge = CvBridge()
+
+        # prevent variable not used warning
+        self.img_subscription
 
 
     def img_callback(self, Image):
         self.get_logger().info("image received")
+        cv_image = self.bridge.imgmsg_to_cv2(Image, desired_encoding='passthrough')
+        # image = PIL_Image.fromarray(cv_image).convert("RGB")
+        boxes, scores, class_ids = self.yolov8_detector(cv_image)
 
 
 
