@@ -49,7 +49,7 @@ class RosYolov8Node(Node):
         self.yolov8_detector = YOLOv8(self.model_path, conf_thres=0.5, iou_thres=0.5)
         self.get_logger().info("============Yolo Model Ready===========")
         self.bridge = CvBridge()
-        self.depth_map = np.zeros((640, 480, 1), np.float16)
+        self.depth_map = np.zeros((480, 640), np.float32)
 
         # camera parameters
         self.cx = 319.5
@@ -77,17 +77,19 @@ class RosYolov8Node(Node):
         header = Header()
         header.frame_id = 'base_link'  # Change this frame_id as needed
         points = []
+        
+        print(boxes)
 
 
         for box, score, label in zip(boxes, scores, labels):
-            center_x = math.floor((box[0] + box[2]) / 2.0)
-            center_y = math.floor((box[1] + box[3]) / 2.0)
-            depth_xy = self.depth_map[center_x][center_y]
+            x1, y1, x2, y2 = box.astype(int)
+            center_x = int((x1 + x2) / 2.0)
+            center_y = int((y1 + y2) / 2.0)
             # https://stackoverflow.com/questions/31265245/extracting-3d-coordinates-given-2d-image-points-depth-map-and-camera-calibratio
             # compute x, y, z of the detected object
-            x = (center_x - self.cx) * self.depth_map[center_x][center_y] / self.fx
-            y = (center_y - self.cy) * self.depth_map[center_x][center_y] / self.fy
-            z = self.depth_map[center_x][center_y]
+            x = (center_x - self.cx) * self.depth_map[center_y][center_x] / self.fx
+            y = (center_y - self.cy) * self.depth_map[center_y][center_x] / self.fy
+            z = self.depth_map[center_y][center_x]
 
             points.append(float(x))
             points.append(float(y))
