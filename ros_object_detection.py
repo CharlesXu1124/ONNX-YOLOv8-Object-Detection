@@ -31,7 +31,7 @@ class RosYolov8Node(Node):
             'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
             'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
             'scissors', 'teddy bear', 'hair drier', 'toothbrush']
-        self.yolo_publisher = self.create_publisher(Float32MultiArray, 'yolo_result', 10)
+        self.yolo_publisher = self.create_publisher(Float32MultiArray, '/yolo_result', 10)
         self.img_subscription = self.create_subscription(
             Image,
             '/camera/color/image_raw',
@@ -72,13 +72,13 @@ class RosYolov8Node(Node):
         results = ""
 
         yolo_msg = Float32MultiArray()
-        
+
         # Create a PointCloud2 message
         header = Header()
         header.frame_id = 'base_link'  # Change this frame_id as needed
         points = []
 
-        
+
         for box, score, label in zip(boxes, scores, labels):
             center_x = math.floor((box[0] + box[2]) / 2.0)
             center_y = math.floor((box[1] + box[3]) / 2.0)
