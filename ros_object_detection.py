@@ -7,6 +7,7 @@ import os
 import cv2
 from yolov8 import YOLOv8
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import String
 from std_msgs.msg import Header
@@ -18,6 +19,7 @@ from numpy import asarray
 import torch
 import array
 import math
+import struct
 
 class RosYolov8Node(Node):
     def __init__(self):
@@ -44,6 +46,13 @@ class RosYolov8Node(Node):
             self.depth_callback,
             10)
 
+        self.point_cloud_subscription = self.create_subscription(
+            PointCloud2,
+            "/camera/depth/points",
+            self.points_callback,
+            10
+        )
+
         # Initialize YOLOv7 object detector
         self.model_path = "models/yolov8s.onnx"
         self.yolov8_detector = YOLOv8(self.model_path, conf_thres=0.5, iou_thres=0.5)
@@ -66,7 +75,7 @@ class RosYolov8Node(Node):
         return point_cloud
 
     def img_callback(self, Image):
-        self.get_logger().info("image received")
+        # self.get_logger().info("image received")
         cv_image = self.bridge.imgmsg_to_cv2(Image, desired_encoding='passthrough')
         boxes, scores, labels = self.yolov8_detector(cv_image)
         results = ""
@@ -78,7 +87,7 @@ class RosYolov8Node(Node):
         header.frame_id = 'base_link'  # Change this frame_id as needed
         points = []
         
-        print(boxes)
+        # print(boxes, end="\r")
 
 
         for box, score, label in zip(boxes, scores, labels):
@@ -97,12 +106,16 @@ class RosYolov8Node(Node):
             points.append(float(label))
 
         yolo_msg.data = points
-        print(points)
+        # print(points)
 
         self.yolo_publisher.publish(yolo_msg)            
 
     def depth_callback(self, Image):
         self.depth_map = self.bridge.imgmsg_to_cv2(Image, desired_encoding='passthrough') / 1000.0
+
+    def points_callback(self, points):
+        print(points.data[0:4])
+
 
 
 def main(args=None):
