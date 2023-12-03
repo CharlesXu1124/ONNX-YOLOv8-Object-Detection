@@ -23,12 +23,6 @@ class RosYolov8Node(Node):
             self.img_callback,
             10)
 
-        self.depth_subscription = self.create_subscription(
-            Image,
-            "/camera/depth/image_raw",
-            self.depth_callback,
-            10)
-
         self.point_cloud_subscription = self.create_subscription(
             PointCloud2,
             "/camera/depth/points",
@@ -97,7 +91,9 @@ class RosYolov8Node(Node):
             ]))
 
             if math.isnan(x[0]) or math.isnan(y[0]) or math.isnan(z[0]):
-                continue
+                points.append(float(8.0))
+                points.append(float(0.0))
+                points.append(float(0.0))
 
             points.append(float(x[0]))
             points.append(float(y[0]))
